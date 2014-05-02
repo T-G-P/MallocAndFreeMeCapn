@@ -2,8 +2,9 @@
 #define mallocMeCapn_H
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #define malloc(x) mymalloc(x, __FILE__, __LINE__)
-#define calloc(x) mycalloc(x, __FILE__, __LINE__)
+#define calloc(x,y) mycalloc(x, y, __FILE__, __LINE__)
 #define free(x) myfree(x, __FILE__, __LINE__)
 #define BLOCKSIZE 5000
 
@@ -17,7 +18,7 @@ struct mementry
 
 void *mymalloc(unsigned int, char*, unsigned int);
 
-//void *mycalloc(unsigned int, char*, unsigned int);
+void *mycalloc(unsigned int, unsigned int, char*, unsigned int);
 
 void myfree(void *, char *, unsigned int);
 

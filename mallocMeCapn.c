@@ -52,13 +52,13 @@ void *mymalloc(unsigned int size, char* file, unsigned int line)
 
     return 0;
 }
-/*
-void *mycalloc(unsigned int size, char* file, unsigned int line)
-    void *data = mymalloc(size);
-    memset(data,0,size);
+
+void *mycalloc(unsigned int nmemb, unsigned int size_per, char* file, unsigned int line){
+    char *data = malloc(nmemb * size_per);
+    bzero(data, nmemb * size_per);
     return data;
 }
-*/
+
 void myfree(void * p, char* file, unsigned int line)
 {
     //Need to show that this is bad memory
@@ -79,6 +79,7 @@ void myfree(void * p, char* file, unsigned int line)
         //check if p is within this range
         start = (char*)ptr + sizeof(struct mementry);
         end = start+ptr->size;
+		//printf("start: %d, p: %d\n", start, p);
         if(start == p){
             if(ptr->isFree == 1){
                 printf("Error at %s, line %d: Double free\n", file, line);
@@ -116,20 +117,33 @@ void myfree(void * p, char* file, unsigned int line)
 
 int main()
 {
-    /*char* string1 = malloc(sizeof(char)*1);
+    char* string1 = malloc(sizeof(char)*1);
     char* string2 = malloc(sizeof(char)*1);
     char* string3 = malloc(sizeof(char));
+	//printf("str1: %d, str2: %d, str3: %d\n", string1, string2, string3);
     free(string1);
     free(string2);
+	//printf("str3: %d\n", string3);
     free(string3);
-    free(string3);*/ //this still doesn't work
-    //malloc(sizeof(char) * 100000); catches frag/sat
-    /*char* p = malloc(sizeof(char)); //catches midblock free
-    free(p+1);*/
-    /*char* p = malloc(sizeof(char)); //catches double free
+	//printf("str3: %d\n", string3);
+    free(string3); //this still doesn't work
+
+	char* string4 = "Calloc";
+	char* cpy = calloc((strlen(string4) + 1000), sizeof(char));
+	strcpy(cpy,string4);
+	printf("%s\n", cpy);
+
+    malloc(sizeof(char) * 100000); //catches frag/sat
+    
+	char* p = malloc(sizeof(char)); //catches midblock free
+    free(p+1);
+    
+	p = malloc(sizeof(char)); //catches double free
     free(p);
-    free(p);*/
-    /*int *x = 5; //catches non-alloc
-    free(x);*/
+    free(p);
+
+    int *x = (int*)5; //catches non-alloc
+    free(x);
+
     return 0;
 }
