@@ -70,6 +70,7 @@ void myfree(void * p, char* file, unsigned int line)
 
     if((char*)p < (char*)&bigBlock || (char*)p > (char*)(&bigBlock + BLOCKSIZE)){
         printf("Error at %s, line %d: Trying to free non-allocated memory\n", file, line);
+        return;
     }
 
     struct mementry *ptr, *pred, *succ;
@@ -117,13 +118,18 @@ int main()
 {
     /*char* string1 = malloc(sizeof(char)*1);
     char* string2 = malloc(sizeof(char)*1);
-    char* string3 = malloc(sizeof(char)*1);
+    char* string3 = malloc(sizeof(char));
     free(string1);
     free(string2);
     free(string3);
-    free(string3);*/
-    //malloc(sizeof(char) * 100000);
-    char* p = malloc(sizeof(char));
-    free(p+1);
+    free(string3);*/ //this still doesn't work
+    //malloc(sizeof(char) * 100000); catches frag/sat
+    /*char* p = malloc(sizeof(char)); //catches midblock free
+    free(p+1);*/
+    /*char* p = malloc(sizeof(char)); //catches double free
+    free(p);
+    free(p);*/
+    /*int *x = 5; //catches non-alloc
+    free(x);*/
     return 0;
 }
