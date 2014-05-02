@@ -14,7 +14,7 @@ struct mementry
 
 struct mementry *root = 0;
 
-void *mymalloc(int size)
+void *mymalloc(unsigned int size, char* __FILE__, unsigned int __LINE__)
 {
     //add print statements.
     static int initialized = 0;                                                       //initializing bigblock static struct mementry *root; struct mementry *p, *succ;
@@ -38,10 +38,10 @@ void *mymalloc(int size)
             p->isFree = 0;                                                          //too small to chop up
             return (char *) p + sizeof(struct mementry);
         }
-                                                                                    //big enough to chop up and return requested amount
+        //big enough to chop up and return requested amount
         else                                                                        //Other blocks appended
         {
-                                                                                    //placing this  mementry struct passed p + the size of the struct p is pointing to + the size passed in
+            //placing this  mementry struct passed p + the size of the struct p is pointing to + the size passed in
             succ = (struct mementry*) ((char*)p + sizeof(struct mementry) + size);
             succ->prev = p;
             succ->succ = p->succ;
@@ -54,13 +54,14 @@ void *mymalloc(int size)
             p->isFree = 0;
             return (char*)p + sizeof(struct mementry);
         }
-
     }while (p != 0);
+
+    printf("Error at %s, line %d: Not enough memory to allocate this\n");
 
     return 0;
 }
 
-void myfree(void * p)
+void myfree(void * p, char* __FILE__, unsigned int __LINE__)
 {
     //Need to show that this is bad memory
     //check if free is marked 0, is p = mempt+sizeof(mp)
@@ -68,26 +69,49 @@ void myfree(void * p)
     //need to iterate through all mementry structs
     //to find good pointers for freeing
     //iterate through linked list
-    struct mementry *ptr = root;
-    for(ptr = root; ptr !=NULL; ptr=ptr->succ){
-        //check if p is within this range
-        start (char*)ptr +sizeof(mementry)
-        end = start+ptr->size
-        //if equal to end or between end, error
-        //if we get to end of loop and haven't found pointer, error.
-        //check for double free
-        //
+
+    if(p < &bigBlock || p > &bigBlock + BLOCKSIZE){
+        printf("Error at %s, line %d: Trying to free non-allocated memory\n", __FILE__, __LINE__);
     }
 
+    struct mementry *ptr = root;
+    struct mementry *pred, *succ;
+    void* start, end;
+    for(ptr = root; ptr != NULL; ptr = ptr->succ){
+        //check if p is within this range
+        start = (char*)ptr + sizeof(mementry);
+        end = start+ptr->size;
+        if(start == p){
+            if(ptr->isFree == 1){
+                printf("Error at %s, line %d: Double free\n", __FILE__, __LINE__);
+                return;
+            }
 
-
+            if((pred = ptr->prev) != 0 && pred->isFree){
+                pred->size += sizeof(struct mementry) + ptr->size;
+                pred->succ = ptr->succ;
+                if(ptr->succ != 0){
+                    ptr->succ->prev = pred;
+                }
+            }else{
+                ptr->isFree = 1;
+                pred = ptr;
+            }
+            if((succ = ptr->succ) != 0 && succ->isFree){
+                pred->size = sizeof(struct mementry) + succ->size;
+                pred->succ = succ->succ;
+                if(succ->succ != 0){
+                    succ->succ->prev = pred;
+                }
+            }
+        }
+    }
+    //if equal to end or between end, error
+    //if we get to end of loop and haven't found pointer, error.
+    //check for double free
+    printf("Error at %s, line %d: Trying to free a pointer not returned by malloc\n", __FILE__, __LINE__);
     ptr = (struct mementry*)((char*)p - sizeof(struct mementry));
 
-    if (ptr->isFree == 1)
-    {
-        printf("That was freed before. (Double Free)!\n");
-        return;
-    }
 }
 
 int main()
