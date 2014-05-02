@@ -1,23 +1,15 @@
-#define malloc(x) mymalloc(x, __FILE__, __LINE__)
-#define free(x) myfree(x, __FILE__, __LINE__)
-//insert macro for line # here put macros in header
-#define BLOCKSIZE 5000;
+#include "mallocMeCapn.h"
+
 static char bigBlock[BLOCKSIZE];
 
-struct mementry
-{
-    struct mementry *prev;
-    struct mementry *succ;
-    int isFree;
-    int size;
-};
+static struct mementry *root;
 
-struct mementry *root = 0;
-
-void *mymalloc(unsigned int size, char* __FILE__, unsigned int __LINE__)
+void *mymalloc(unsigned int size, char* file, unsigned int line)
 {
+
     //add print statements.
     static int initialized = 0;                                                       //initializing bigblock static struct mementry *root; struct mementry *p, *succ;
+    struct mementry *p, *succ;
     if (!initialized)
     {
         root = (struct mementry *) bigBlock;
@@ -60,8 +52,14 @@ void *mymalloc(unsigned int size, char* __FILE__, unsigned int __LINE__)
 
     return 0;
 }
-
-void myfree(void * p, char* __FILE__, unsigned int __LINE__)
+/*
+void *mycalloc(unsigned int size, char* file, unsigned int line)
+    void *data = mymalloc(size);
+    memset(data,0,size);
+    return data;
+}
+*/
+void myfree(void * p, char* file, unsigned int line)
 {
     //Need to show that this is bad memory
     //check if free is marked 0, is p = mempt+sizeof(mp)
@@ -70,20 +68,19 @@ void myfree(void * p, char* __FILE__, unsigned int __LINE__)
     //to find good pointers for freeing
     //iterate through linked list
 
-    if(p < &bigBlock || p > &bigBlock + BLOCKSIZE){
-        printf("Error at %s, line %d: Trying to free non-allocated memory\n", __FILE__, __LINE__);
+    if((char*)p < (char*)&bigBlock || (char*)p > (char*)(&bigBlock + BLOCKSIZE)){
+        printf("Error at %s, line %d: Trying to free non-allocated memory\n", file, line);
     }
 
-    struct mementry *ptr = root;
-    struct mementry *pred, *succ;
-    void* start, end;
+    struct mementry *ptr, *pred, *succ;
+    char *start, *end;
     for(ptr = root; ptr != NULL; ptr = ptr->succ){
         //check if p is within this range
-        start = (char*)ptr + sizeof(mementry);
+        start = (char*)ptr + sizeof(struct mementry);
         end = start+ptr->size;
         if(start == p){
             if(ptr->isFree == 1){
-                printf("Error at %s, line %d: Double free\n", __FILE__, __LINE__);
+                printf("Error at %s, line %d: Double free\n", file, line);
                 return;
             }
 
@@ -104,24 +101,29 @@ void myfree(void * p, char* __FILE__, unsigned int __LINE__)
                     succ->succ->prev = pred;
                 }
             }
+            return;
         }
     }
     //if equal to end or between end, error
     //if we get to end of loop and haven't found pointer, error.
     //check for double free
-    printf("Error at %s, line %d: Trying to free a pointer not returned by malloc\n", __FILE__, __LINE__);
-    ptr = (struct mementry*)((char*)p - sizeof(struct mementry));
+
+    printf("Error at %s, line %d: Trying to free a pointer not returned by malloc\n", file, line);
+    //ptr = (struct mementry*)((char*)p - sizeof(struct mementry));
 
 }
 
 int main()
 {
-    char* string1 = mymalloc(sizeof(char)*1);
-    char* string2 = mymalloc(sizeof(char)*1);
-    char* string3 = mymalloc(sizeof(char)*1);
+    /*char* string1 = malloc(sizeof(char)*1);
+    char* string2 = malloc(sizeof(char)*1);
+    char* string3 = malloc(sizeof(char)*1);
     free(string1);
     free(string2);
     free(string3);
-    free(string3);
+    free(string3);*/
+    //malloc(sizeof(char) * 100000);
+    char* p = malloc(sizeof(char));
+    free(p+1);
     return 0;
 }
