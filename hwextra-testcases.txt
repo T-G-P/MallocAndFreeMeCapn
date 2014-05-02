@@ -20,3 +20,8 @@ Expected Outputs: Error, not a pointer returned from malloc
 Test 5: Non-allocated memory
 Inputs: int* x = (int*) 5, free(x)
 Expected Outputs: Error, non-allocated memory
+
+Test 6: Calloc
+Inputs: Create a string, calloc another of it's length, strcpy and print the
+copy
+Expected Outputs: The string
